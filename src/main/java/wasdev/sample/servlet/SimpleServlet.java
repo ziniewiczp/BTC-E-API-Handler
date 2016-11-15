@@ -22,6 +22,8 @@ import org.json.JSONObject;
 @WebServlet("/SimpleServlet")
 public class SimpleServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	
+	private String responseString = "<table><tr><th>Timestamp:</th><th>Ask price:</th><th>Ask size:</th><th>Bid price:</th><th>Bid size:</th></tr>";
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
@@ -31,14 +33,14 @@ public class SimpleServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		// Set refresh, autoload time as 5 seconds
-		response.setIntHeader("Refresh", 2);
-
-		System.out.println("Output from Server .... \n");
+		// refreshing moved to index.html, line 6. This one didn't work in browser.
+		
+		// Set refresh, autoload time as 2 seconds
+		//response.setIntHeader("Refresh", 2);
 
 		try {
 
-			URL url = new URL("https://btc-e.com/api/3/depth/btc_usd/");
+			URL url = new URL("https://btc-e.com/api/3/depth/btc_usd?limit=5/");
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("GET");
 			conn.setRequestProperty("Accept", "application/json");
@@ -52,7 +54,6 @@ public class SimpleServlet extends HttpServlet {
 			String output;
 
 			while ((output = br.readLine()) != null) {
-				// System.out.println(output);
 
 				// System.currentTimeMillis() provides current time in
 				// milliseconds since the UNIX epoch (Jan 1, 1970).
@@ -70,17 +71,17 @@ public class SimpleServlet extends HttpServlet {
 				System.out.println("Bid size: " + bidsArray.getJSONArray(0).getBigDecimal(1));
 				System.out.println("\n");
 				
+				responseString = responseString + "<tr><td>" + unixTime + "</td>" 
+						+ "<td>" + asksArray.getJSONArray(0).getBigDecimal(0) + "</td>" 
+						+ "<td>" + asksArray.getJSONArray(0).getBigDecimal(1) + "</td>"
+						+ "<td>" + bidsArray.getJSONArray(0).getBigDecimal(0) + "</td>"
+						+ "<td>" + bidsArray.getJSONArray(0).getBigDecimal(1) + "</td>";
+				
 				response.setContentType("text/html");
-				response.getWriter().print(unixTime + " " 
-						+ asksArray.getJSONArray(0).getBigDecimal(0) + " " 
-						+ asksArray.getJSONArray(0).getBigDecimal(1) + " "
-						+ bidsArray.getJSONArray(0).getBigDecimal(0) + " "
-						+ bidsArray.getJSONArray(0).getBigDecimal(1)
-						);
+				response.getWriter().print(responseString + "</tr></table>");
 			}
 
 			output = "";
-			//Thread.sleep(2000);
 
 			conn.disconnect();
 
