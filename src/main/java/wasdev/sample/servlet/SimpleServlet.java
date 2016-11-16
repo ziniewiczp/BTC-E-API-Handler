@@ -20,51 +20,43 @@ import org.json.JSONObject;
  * Servlet implementation class SimpleServlet
  */
 @WebServlet("/SimpleServlet")
-public class SimpleServlet extends HttpServlet
-{
+public class SimpleServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	
+
 	private String responseString = "<table><tr><th>Timestamp:</th><th>Ask price:</th><th>Ask size:</th><th>Bid price:</th><th>Bid size:</th></tr>";
-	
-	public void init()
-	{
+
+	public void init() {
 		MyThread myThread = new MyThread();
 		myThread.start();
 	}
-	
-	public class MyThread extends Thread
-	{
-	    public void run() 
-	    {   
-	    	while(true) 
-	    	{	
-		    	try 
-		    	{
+
+	public class MyThread extends Thread {
+		public void run() {
+			while (true) {
+				try {
 					URL url = new URL("https://btc-e.com/api/3/depth/btc_usd?limit=5/");
 					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 					conn.setRequestMethod("GET");
 					conn.setRequestProperty("Accept", "application/json");
-	
-					if (conn.getResponseCode() != 200)
-					{
+
+					if (conn.getResponseCode() != 200) {
 						throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
 					}
-	
+
 					BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
-	
+
 					String output;
-	
-					while ((output = br.readLine()) != null)
-					{
+
+					while ((output = br.readLine()) != null) {
 						// System.currentTimeMillis() provides current time in
 						// milliseconds since the UNIX epoch (Jan 1, 1970).
 						// Dividing is used to get time in seconds.
 						long unixTime = System.currentTimeMillis() / 1000L;
-	
+
 						JSONObject obj = new JSONObject(output);
 						JSONArray asksArray = obj.getJSONObject("btc_usd").getJSONArray("asks");
 						JSONArray bidsArray = obj.getJSONObject("btc_usd").getJSONArray("bids");
-	
+
 						System.out.println(Thread.currentThread().getName());
 						System.out.println("Timestamp: " + unixTime);
 						System.out.println("Ask price: " + asksArray.getJSONArray(0).getBigDecimal(0));
@@ -72,34 +64,33 @@ public class SimpleServlet extends HttpServlet
 						System.out.println("Bid price: " + bidsArray.getJSONArray(0).getBigDecimal(0));
 						System.out.println("Bid size: " + bidsArray.getJSONArray(0).getBigDecimal(1));
 						System.out.println("\n");
-						
-						responseString = responseString + "<tr><td>" + unixTime + "</td>" 
-								+ "<td>" + asksArray.getJSONArray(0).getBigDecimal(0) + "</td>" 
-								+ "<td>" + asksArray.getJSONArray(0).getBigDecimal(1) + "</td>"
-								+ "<td>" + bidsArray.getJSONArray(0).getBigDecimal(0) + "</td>"
-								+ "<td>" + bidsArray.getJSONArray(0).getBigDecimal(1) + "</td>";
+
+						synchronized (responseString) {
+							responseString = responseString + "<tr><td>" + unixTime + "</td>" + "<td>"
+									+ asksArray.getJSONArray(0).getBigDecimal(0) + "</td>" + "<td>"
+									+ asksArray.getJSONArray(0).getBigDecimal(1) + "</td>" + "<td>"
+									+ bidsArray.getJSONArray(0).getBigDecimal(0) + "</td>" + "<td>"
+									+ bidsArray.getJSONArray(0).getBigDecimal(1) + "</td>";
+						}
 					}
-	
+
 					output = "";
-	
+
 					conn.disconnect();
-					
+
 					Thread.sleep(2000);
-	
-				} catch (MalformedURLException e)
-		    	{
+
+				} catch (MalformedURLException e) {
 					e.printStackTrace();
-					
-				} catch (IOException e)
-		    	{
+
+				} catch (IOException e) {
 					e.printStackTrace();
-					
-				} catch (InterruptedException e)
-		    	{
+
+				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-	    	}
-	    }
+			}
+		}
 	}
 
 	/**
@@ -108,9 +99,11 @@ public class SimpleServlet extends HttpServlet
 	 */
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException
-	{	
+			throws ServletException, IOException {
 		response.setContentType("text/html");
-		response.getWriter().print(responseString + "</tr></table>");
+
+		synchronized (responseString) {
+			response.getWriter().print(responseString + "</tr></table>");
+		}
 	}
 }
