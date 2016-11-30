@@ -12,4 +12,5 @@
 
     <application name="JavaHelloWorldApp" context-root="/JavaHelloWorldApp" location="${appLocation}" type="war"/>
 
+
 </server>

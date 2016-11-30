@@ -42,11 +42,20 @@
             <artifactId>geronimo-servlet_3.0_spec</artifactId>
             <scope>provided</scope>
         </dependency>
+    
         <dependency>
     		<groupId>org.json</groupId>
     		<artifactId>json</artifactId>
-    	<version>20160810</version>
-</dependency>
+    		<version>20160810</version>
+		</dependency>
+      
+      	<dependency>
+			<groupId>com.ibm.db2.jcc</groupId>
+			<artifactId>db2jcc4</artifactId>
+			<version>4.21.29</version>
+			<!-- <scope>system</scope> -->
+			<!-- <systemPath>${project.basedir}/lib/com/ibm/db2/jcc/db2jcc4/4.21.29/db2jcc4-4.21.29.jar</systemPath> -->
+		</dependency>
     </dependencies>
 
     <build>
